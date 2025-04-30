@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Fuga de Escala - C&M Software</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.min.js"></script>
+  </head>
+  <body>
+    <script>
+      let bird;
+      let pipes = [];
+      let score = 0;
+      let bg;
+      let fallbackBg;
+      let topScores = [];
+      let bgLoaded = false;
+
+      function preload() {
+        fallbackBg = loadImage("https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80");
+        bg = loadImage(
+          "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/C%26M_Software_Logo.png/600px-C%26M_Software_Logo.png",
+          () => bgLoaded = true,
+          () => bg = fallbackBg
+        );
+      }
+
+      function setup() {
+        createCanvas(480, 640);
+        bird = new Bird();
+        pipes.push(new Pipe());
+        textSize(20);
+        textAlign(CENTER, TOP);
+      }
+
+      function draw() {
+        background(255);
+        image(bg, 0, 0, width, height);
+
+        bird.update();
+        bird.show();
+
+        if (frameCount % 90 === 0) {
+          pipes.push(new Pipe());
+        }
+
+        for (let i = pipes.length - 1; i >= 0; i--) {
+          pipes[i].update();
+          pipes[i].show();
+
+          if (pipes[i].hits(bird)) {
+            checkHighScore();
+            resetGame();
+          }
+
+          if (pipes[i].offscreen()) {
+            pipes.splice(i, 1);
+            score++;
+          }
+        }
+
+        fill(255);
+        stroke(0);
+        strokeWeight(2);
+        textSize(28);
+        text("Fuga de escala: " + score, width / 2, 10);
+
+        drawTopScores();
+      }
+
+      function drawTopScores() {
+        fill(0, 0, 0, 180);
+        rect(10, 50, 200, 100, 10);
+        fill(255);
+        noStroke();
+        textSize(16);
+        textAlign(LEFT, TOP);
+        text("Maiores fugas:", 20, 60);
+        for (let i = 0; i < topScores.length; i++) {
+          let entry = topScores[i];
+          text(`${i + 1}. ${entry.name} - ${entry.score}`, 20, 80 + i * 20);
+        }
+      }
+
+      function checkHighScore() {
+        if (
+          topScores.length < 3 ||
+          score > topScores[topScores.length - 1].score
+        ) {
+          let name = prompt("Parabéns! Digite seu nome para registrar a fuga:");
+          if (name) {
+            topScores.push({ name, score });
+            topScores.sort((a, b) => b.score - a.score);
+            if (topScores.length > 3) topScores.pop();
+          }
+        }
+      }
+
+      function keyPressed() {
+        if (key == ' ' || keyCode === UP_ARROW) bird.up();
+      }
+
+      function touchStarted() {
+        bird.up();
+        return false;
+      }
+
+      function mousePressed() {
+        bird.up();
+      }
+
+      function resetGame() {
+        score = 0;
+        bird = new Bird();
+        pipes = [];
+        pipes.push(new Pipe());
+      }
+
+      class Bird {
+        constructor() {
+          this.y = height / 2;
+          this.x = 64;
+          this.gravity = 0.6;
+          this.lift = -12;
+          this.velocity = 0;
+        }
+
+        show() {
+          fill(255, 204, 0);
+          ellipse(this.x, this.y, 32, 32);
+          fill(0);
+          textSize(16);
+          textAlign(CENTER, CENTER);
+          text("OP", this.x, this.y);
+        }
+
+        up() {
+          this.velocity += this.lift;
+        }
+
+        update() {
+          this.velocity += this.gravity;
+          this.velocity *= 0.9;
+          this.y += this.velocity;
+
+          if (this.y > height) {
+            this.y = height;
+            this.velocity = 0;
+          }
+
+          if (this.y < 0) {
+            this.y = 0;
+            this.velocity = 0;
+          }
+        }
+      }
+
+      class Pipe {
+        constructor() {
+          this.top = random(100, 300);
+          this.gap = 150;
+          this.bottom = this.top + this.gap;
+          this.x = width;
+          this.w = 60;
+          this.speed = 2;
+        }
+
+        hits(bird) {
+          return (
+            bird.y < this.top || bird.y > this.bottom
+          ) && bird.x > this.x && bird.x < this.x + this.w;
+        }
+
+        show() {
+          fill(34, 139, 34);
+          rect(this.x, 0, this.w, this.top);
+          rect(this.x, this.bottom, this.w, height - this.bottom);
+
+          fill(255);
+          textSize(16);
+          textAlign(CENTER, CENTER);
+          text("Escala", this.x + this.w / 2, this.top / 2);
+          text("Escala", this.x + this.w / 2, this.bottom + (height - this.bottom) / 2);
+        }
+
+        update() {
+          this.x -= this.speed;
+        }
+
+        offscreen() {
+          return this.x < -this.w;
+        }
+      }
+    </script>
+  </body>
+</html>
