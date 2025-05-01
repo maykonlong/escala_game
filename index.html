@@ -2,7 +2,7 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Fugitivo da Escala</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
@@ -12,11 +12,14 @@
         overflow: hidden;
         background-color: #0a0a1a;
         font-family: 'Orbitron', Arial, sans-serif;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
       }
       #game-container {
         position: relative;
         width: 100%;
         height: 100vh;
+        touch-action: none;
       }
       #start-screen, #game-over-screen {
         position: absolute;
@@ -40,23 +43,23 @@
         background: rgba(0, 20, 40, 0.8);
         border: 2px solid #0ff;
         box-shadow: 0 0 15px #0ff, inset 0 0 10px #0ff;
-        padding: 30px;
+        padding: 20px;
         border-radius: 5px;
-        width: 80%;
+        width: 85%;
         max-width: 500px;
-        margin: 20px;
+        margin: 15px;
       }
       .title-box {
         background: rgba(0, 10, 20, 0.7);
         border: 1px solid #f0f;
         box-shadow: 0 0 10px #f0f;
-        padding: 15px;
-        margin-bottom: 20px;
+        padding: 10px;
+        margin-bottom: 15px;
       }
       button {
-        margin: 15px;
-        padding: 12px 30px;
-        font-size: 18px;
+        margin: 10px;
+        padding: 10px 25px;
+        font-size: 16px;
         cursor: pointer;
         background: linear-gradient(45deg, #ff00cc, #3333ff);
         color: white;
@@ -64,32 +67,33 @@
         border-radius: 0;
         transition: all 0.3s;
         font-family: 'Orbitron', sans-serif;
+        min-width: 120px;
       }
       button:hover {
         box-shadow: 0 0 15px #ff00cc, 0 0 25px #3333ff;
         transform: translateY(-3px);
       }
       h1 {
-        font-size: 2rem;
+        font-size: 1.5rem;
         margin: 0;
         text-shadow: 0 0 10px #0ff;
         color: #0ff;
       }
       #burnout {
-        font-size: 3rem;
+        font-size: 2.5rem;
         color: #f00;
         font-weight: bold;
         text-shadow: 0 0 10px #f00;
-        margin-bottom: 30px;
+        margin-bottom: 20px;
         display: none;
       }
       input {
         background: rgba(0, 10, 20, 0.7);
         border: 1px solid #0ff;
         color: #0ff;
-        padding: 12px;
+        padding: 10px;
         font-size: 16px;
-        margin: 15px 0;
+        margin: 10px 0;
         width: 80%;
         max-width: 300px;
         text-align: center;
@@ -132,6 +136,38 @@
         top: 0;
         left: 0;
         z-index: 1;
+        touch-action: none;
+      }
+      
+      /* Estilos específicos para mobile */
+      @media (max-width: 768px) {
+        .cyber-box {
+          padding: 15px;
+          width: 90%;
+        }
+        
+        h1 {
+          font-size: 1.3rem;
+        }
+        
+        button {
+          padding: 12px 20px;
+          font-size: 14px;
+          min-width: 100px;
+        }
+        
+        #burnout {
+          font-size: 2rem;
+        }
+        
+        input {
+          font-size: 14px;
+          padding: 8px;
+        }
+        
+        .title-box {
+          padding: 8px;
+        }
       }
     </style>
   </head>
@@ -174,6 +210,8 @@
         let birdSize = 40;
         let topScores = JSON.parse(localStorage.getItem('topScores')) || [];
         let lastPipeX = 0;
+        let isMobile = false;
+        let touchStartY = 0;
         
         // Elementos da interface
         let startScreen, gameOverScreen, nameInput, startButton, yesButton, noButton, burnoutText;
@@ -206,6 +244,9 @@
         }
         
         function setup() {
+          // Verifica se é um dispositivo móvel
+          isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+          
           let canvas = createCanvas(windowWidth, windowHeight);
           canvas.parent('game-container');
           
@@ -218,13 +259,25 @@
           noButton = select('#no-button');
           burnoutText = select('#burnout');
           
-         // Configura eventos
+          // Configura eventos
           startButton.mousePressed(startGame);
           yesButton.mousePressed(endGame);
           noButton.mousePressed(restartGame);
           
+          // Configura eventos de toque para mobile
+          if (isMobile) {
+            canvas.elt.addEventListener('touchstart', handleTouchStart, { passive: false });
+            canvas.elt.addEventListener('touchmove', handleTouchMove, { passive: false });
+          }
+          
           // Inicializa o trabalhador
           bird = new Bird();
+          
+          // Ajusta parâmetros para mobile
+          if (isMobile) {
+            birdSize = 30;
+            bird.lift = -10; // Reduz a força do pulo para mobile
+          }
           
           // Esconde o canvas inicialmente
           canvas.hide();
@@ -296,7 +349,7 @@
           }
           
           // Mostra a pontuação
-          drawCyberText("PONTOS: " + score, width / 2, 30, 32, color(0, 255, 255));
+          drawCyberText("PONTOS: " + score, width / 2, 30, isMobile ? 24 : 32, color(0, 255, 255));
           
           // Mostra os melhores scores
           drawTopScores();
@@ -324,24 +377,31 @@
         function drawTopScores() {
           if (topScores.length === 0) return;
           
+          // Tamanho do retângulo do ranking ajustado para mobile
+          let rectWidth = isMobile ? 180 : 240;
+          let rectHeight = isMobile ? 30 + topScores.length * 25 : 40 + topScores.length * 30;
+          
           // Fundo do ranking
           fill(0, 20, 40, 200);
           stroke(0, 255, 255);
           strokeWeight(2);
-          rect(20, 70, 240, 40 + topScores.length * 30, 5);
+          rect(20, 70, rectWidth, rectHeight, 5);
           
           // Título
-          drawCyberText("TOP FUJÕES", 140, 100, 20, color(255, 0, 255));
+          drawCyberText("TOP FUJÕES", 20 + rectWidth/2, isMobile ? 90 : 100, isMobile ? 16 : 20, color(255, 0, 255));
           
           // Itens do ranking
           for (let i = 0; i < topScores.length; i++) {
-            let yPos = 130 + i * 30;
+            let yPos = isMobile ? 115 + i * 25 : 130 + i * 30;
             let neonColor = i === 0 ? color(255, 255, 0) : 
                            i === 1 ? color(200, 200, 200) : 
                            i === 2 ? color(205, 127, 50) : 
                            color(0, 255, 255);
             
-            drawCyberText(`${i + 1}. ${topScores[i].name}: ${topScores[i].score}`, 140, yPos, 16, neonColor);
+            drawCyberText(`${i + 1}. ${topScores[i].name}: ${topScores[i].score}`, 
+                          20 + rectWidth/2, yPos, 
+                          isMobile ? 14 : 16, 
+                          neonColor);
           }
         }
         
@@ -398,12 +458,30 @@
         function keyPressed() {
           if ((key === ' ' || keyCode === UP_ARROW) && gameStarted && !gameOver) {
             bird.up();
+            return false; // Previne comportamento padrão
           }
         }
         
         function mousePressed() {
           if (gameStarted && !gameOver) {
             bird.up();
+            return false; // Previne comportamento padrão
+          }
+        }
+        
+        // Funções para lidar com toque em dispositivos móveis
+        function handleTouchStart(e) {
+          if (gameStarted && !gameOver) {
+            e.preventDefault();
+            touchStartY = e.touches[0].clientY;
+            bird.up();
+          }
+        }
+        
+        function handleTouchMove(e) {
+          if (gameStarted && !gameOver) {
+            e.preventDefault();
+            // Pode adicionar lógica adicional para movimentos se necessário
           }
         }
         
@@ -424,9 +502,9 @@
             this.y = height / 2;
             this.x = width / 4;
             this.gravity = 0.6;
-            this.lift = -12;
+            this.lift = isMobile ? -10 : -12; // Ajuste para mobile
             this.velocity = 0;
-            this.size = birdSize;
+            this.size = isMobile ? 30 : 40; // Tamanho ajustado para mobile
             this.neonColor = color(255, 0, 255);
           }
           
@@ -483,9 +561,9 @@
         // Classe das Escalas (obstáculos)
         class Pipe {
           constructor() {
-            this.w = 80;
+            this.w = isMobile ? 60 : 80; // Largura ajustada para mobile
             this.x = width;
-            this.speed = 3;
+            this.speed = isMobile ? 2.5 : 3; // Velocidade ajustada para mobile
             this.counted = false;
             this.neonColor = color(0, 255, 255);
             
