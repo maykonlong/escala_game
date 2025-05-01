@@ -508,62 +508,51 @@
           }
         }
         
-        class Pipe {
-          constructor() {
-            this.w = isMobile ? 60 : 80;
-            this.x = width;
-            this.speed = isMobile ? 2.5 : 3;
-            this.counted = false;
-            this.neonColor = color(0, 255, 255);
-            this.gap = random(birdSize * 3, birdSize * 5);
-            this.top = random(height/6, height - this.gap - height/6);
-            this.bottom = this.top + this.gap;
-          }
-          
-          hits(bird) {
-            if (bird.x + bird.size/2 > this.x && bird.x - bird.size/2 < this.x + this.w) {
-              if (bird.y - bird.size/2 < this.top || bird.y + bird.size/2 > this.bottom) {
-                return true;
-              }
-            }
-            return false;
-          }
-          
-          show() {
-            drawingContext.shadowBlur = 10;
-            drawingContext.shadowColor = this.neonColor;
-            
-            if (pipeImg) {
-              push();
-              translate(this.x, this.top);
-              scale(1, -1);
-              image(pipeImg, 0, 0, this.w, this.top);
-              pop();
-              image(pipeImg, this.x, this.bottom, this.w, height - this.bottom);
-            } else {
-              fill(0, 20, 40);
-              stroke(this.neonColor);
-              strokeWeight(2);
-              rect(this.x, 0, this.w, this.top);
-              rect(this.x, this.bottom, this.w, height - this.bottom);
-              fill(this.neonColor);
-              noStroke();
-              textSize(16);
-              textAlign(CENTER, CENTER);
-              text("ESCALA", this.x + this.w/2, this.top/2);
-              text("ESCALA", this.x + this.w/2, this.bottom + (height - this.bottom)/2);
-            }
-            drawingContext.shadowBlur = 0;
-          }
-          
-          update() {
-            this.x -= this.speed;
-          }
-          
-          offscreen() {
-            return this.x < -this.w;
-          }
-        }
+class Pipe {
+  constructor() {
+    this.w = isMobile ? 60 : 80;
+    this.x = width;
+    this.speed = isMobile ? 2.5 : 3;
+    this.counted = false;
+    this.neonColor = color(0, 255, 255);
+    this.gap = random(birdSize * 3, birdSize * 5);
+    this.top = random(height / 6, height - this.gap - height / 6);
+    this.bottom = this.top + this.gap;
+  }
+
+  hits(bird) {
+    let hitX = bird.x + bird.size / 2 > this.x && bird.x - bird.size / 2 < this.x + this.w;
+    let hitY = bird.y - bird.size / 2 < this.top || bird.y + bird.size / 2 > this.bottom;
+    return hitX && hitY;
+  }
+
+  show() {
+    drawingContext.shadowBlur = 10;
+    drawingContext.shadowColor = this.neonColor;
+
+    if (pipeImg) {
+      image(pipeImg, this.x, 0, this.w, this.top);
+      image(pipeImg, this.x, this.bottom, this.w, height - this.bottom);
+    } else {
+      fill(0);
+      stroke(this.neonColor);
+      strokeWeight(2);
+      rect(this.x, 0, this.w, this.top);
+      rect(this.x, this.bottom, this.w, height - this.bottom);
+    }
+
+    drawingContext.shadowBlur = 0;
+  }
+
+  update() {
+    this.x -= this.speed;
+  }
+
+  offscreen() {
+    return this.x + this.w < 0;
+  }
+}
+
       </script>
     </div>
   </body>
