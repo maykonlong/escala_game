@@ -3,201 +3,538 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Fuga de Escala</title>
+    <title>Fugitivo da Escala</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
     <style>
       body {
         margin: 0;
         overflow: hidden;
+        background-color: #0a0a1a;
+        font-family: 'Orbitron', Arial, sans-serif;
+      }
+      #game-container {
+        position: relative;
+        width: 100%;
+        height: 100vh;
+      }
+      #start-screen, #game-over-screen {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: linear-gradient(135deg, rgba(10,10,30,0.9) 0%, rgba(30,5,60,0.9) 100%);
+        color: #0ff;
+        z-index: 10;
+        text-align: center;
+      }
+      #game-over-screen {
+        display: none;
+      }
+      .cyber-box {
+        background: rgba(0, 20, 40, 0.8);
+        border: 2px solid #0ff;
+        box-shadow: 0 0 15px #0ff, inset 0 0 10px #0ff;
+        padding: 30px;
+        border-radius: 5px;
+        width: 80%;
+        max-width: 500px;
+        margin: 20px;
+      }
+      .title-box {
+        background: rgba(0, 10, 20, 0.7);
+        border: 1px solid #f0f;
+        box-shadow: 0 0 10px #f0f;
+        padding: 15px;
+        margin-bottom: 20px;
+      }
+      button {
+        margin: 15px;
+        padding: 12px 30px;
+        font-size: 18px;
+        cursor: pointer;
+        background: linear-gradient(45deg, #ff00cc, #3333ff);
+        color: white;
+        border: none;
+        border-radius: 0;
+        transition: all 0.3s;
+        font-family: 'Orbitron', sans-serif;
+      }
+      button:hover {
+        box-shadow: 0 0 15px #ff00cc, 0 0 25px #3333ff;
+        transform: translateY(-3px);
+      }
+      h1 {
+        font-size: 2rem;
+        margin: 0;
+        text-shadow: 0 0 10px #0ff;
+        color: #0ff;
+      }
+      #burnout {
+        font-size: 3rem;
+        color: #f00;
+        font-weight: bold;
+        text-shadow: 0 0 10px #f00;
+        margin-bottom: 30px;
+        display: none;
+      }
+      input {
+        background: rgba(0, 10, 20, 0.7);
+        border: 1px solid #0ff;
+        color: #0ff;
+        padding: 12px;
+        font-size: 16px;
+        margin: 15px 0;
+        width: 80%;
+        max-width: 300px;
+        text-align: center;
+        font-family: 'Orbitron', sans-serif;
+      }
+      .button-container {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .scanlines {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          to bottom,
+          rgba(0, 255, 255, 0.05) 0%,
+          rgba(0, 255, 255, 0) 10%
+        );
+        background-size: 100% 4px;
+        pointer-events: none;
+        z-index: 5;
+      }
+      .noise {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABnSURBVGhD7cExAQAwDMCg+zfd2VAp5JVBXtnllV1e2eWVXV7Z5ZVdXtnllV1e2eWVXV7Z5ZVdXtnllV1e2eWVXV7Z5ZVdXtnllV1e2eWVXV7Z5ZVdXtnllV1e2eWVXV7Z5ZVdXtnllV1e2eWVXV7Z5Q1Q5AERp1j3JAAAAABJRU5ErkJggg==');
+        opacity: 0.03;
+        pointer-events: none;
+        z-index: 6;
+      }
+      canvas {
+        display: block;
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 1;
       }
     </style>
   </head>
   <body>
-    <script>
-      let bird;
-      let pipes = [];
-      let score = 0;
-      let bg;
-      let fallbackBg;
-      let topScores = [];
-      let bgLoaded = false;
-
-      function preload() {
-        fallbackBg = loadImage("https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80");
-        bg = loadImage(
-          "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/C%26M_Software_Logo.png/600px-C%26M_Software_Logo.png",
-          () => bgLoaded = true,
-          () => bg = fallbackBg
-        );
-      }
-
-      function setup() {
-        // Definindo o tamanho da tela como 100% da largura e altura da janela
-        createCanvas(windowWidth, windowHeight);
-        bird = new Bird();
-        pipes.push(new Pipe());
-        textSize(20);
-        textAlign(CENTER, TOP);
-      }
-
-      function draw() {
-        background(255);
-        image(bg, 0, 0, width, height);
-
-        bird.update();
-        bird.show();
-
-        if (frameCount % 90 === 0) {
-          pipes.push(new Pipe());
+    <div id="game-container">
+      <div class="scanlines"></div>
+      <div class="noise"></div>
+      
+      <div id="start-screen">
+        <div class="cyber-box">
+          <div class="title-box">
+            <h1>FUGITIVO DA ESCALA</h1>
+          </div>
+          <p>Digite seu nome para começar:</p>
+          <input type="text" id="player-name" placeholder="Seu nome">
+          <button id="start-button">Começar</button>
+        </div>
+      </div>
+      
+      <div id="game-over-screen">
+        <div class="cyber-box">
+          <div id="burnout">BURNOUT</div>
+          <p>Pedir as contas?</p>
+          <div class="button-container">
+            <button id="yes-button">Sim</button>
+            <button id="no-button">Não</button>
+          </div>
+        </div>
+      </div>
+      
+      <script>
+        // Variáveis do jogo
+        let bird;
+        let pipes = [];
+        let score = 0;
+        let gameStarted = false;
+        let gameOver = false;
+        let playerName = "";
+        let birdImg, bgImg, pipeImg;
+        let birdSize = 40;
+        let topScores = JSON.parse(localStorage.getItem('topScores')) || [];
+        let lastPipeX = 0;
+        
+        // Elementos da interface
+        let startScreen, gameOverScreen, nameInput, startButton, yesButton, noButton, burnoutText;
+        
+        function preload() {
+          // Tenta carregar imagens locais, se não encontrar, usa fallbacks
+          bgImg = loadImage('fundo.jpeg', 
+            () => console.log('Fundo local carregado'), 
+            () => {
+              console.log('Usando fallback para fundo');
+              bgImg = null;
+            }
+          );
+          
+          birdImg = loadImage('personagem.jpg', 
+            () => console.log('Personagem local carregado'), 
+            () => {
+              console.log('Usando fallback para personagem');
+              birdImg = null;
+            }
+          );
+          
+          pipeImg = loadImage('cano.jpg', 
+            () => console.log('Cano local carregado'), 
+            () => {
+              console.log('Usando fallback para cano');
+              pipeImg = null;
+            }
+          );
         }
-
-        for (let i = pipes.length - 1; i >= 0; i--) {
-          pipes[i].update();
-          pipes[i].show();
-
-          if (pipes[i].hits(bird)) {
-            checkHighScore();
-            resetGame();
+        
+        function setup() {
+          let canvas = createCanvas(windowWidth, windowHeight);
+          canvas.parent('game-container');
+          
+          // Configura elementos da interface
+          startScreen = select('#start-screen');
+          gameOverScreen = select('#game-over-screen');
+          nameInput = select('#player-name');
+          startButton = select('#start-button');
+          yesButton = select('#yes-button');
+          noButton = select('#no-button');
+          burnoutText = select('#burnout');
+          
+          // Configura eventos
+          startButton.mousePressed(startGame);
+          yesButton.mousePressed(endGame);
+          noButton.mousePressed(restartGame);
+          
+          // Inicializa o trabalhador
+          bird = new Bird();
+          
+          // Esconde o canvas inicialmente
+          canvas.hide();
+        }
+        
+        function draw() {
+          if (!gameStarted) return;
+          
+          // Desenha o fundo
+          if (bgImg) {
+            image(bgImg, 0, 0, width, height);
+          } else {
+            background(10, 5, 30);
+            // Efeitos de neon para o fundo
+            stroke(0, 255, 255, 50);
+            noFill();
+            for (let i = 0; i < 5; i++) {
+              beginShape();
+              for (let x = 0; x < width; x += 20) {
+                let y = noise(x * 0.01, i * 100, frameCount * 0.01) * height;
+                vertex(x, y);
+              }
+              endShape();
+            }
           }
-
-          if (pipes[i].offscreen()) {
-            pipes.splice(i, 1);
-            score++;
+          
+          if (gameOver) return;
+          
+          // Atualiza e desenha o trabalhador
+          bird.update();
+          bird.show();
+          
+          // Gera novos obstáculos (escalas)
+          if (frameCount % 90 === 0 || (pipes.length > 0 && pipes[pipes.length-1].x < width - 300)) {
+            pipes.push(new Pipe());
           }
-        }
-
-        fill(255);
-        stroke(0);
-        strokeWeight(2);
-        textSize(28);
-        text("Fuga de escala: " + score, width / 2, 10);
-
-        drawTopScores();
-      }
-
-      function drawTopScores() {
-        fill(0, 0, 0, 180);
-        rect(10, 50, 200, 100, 10);
-        fill(255);
-        noStroke();
-        textSize(16);
-        textAlign(LEFT, TOP);
-        text("Maiores fugas:", 20, 60);
-        for (let i = 0; i < topScores.length; i++) {
-          let entry = topScores[i];
-          text(`${i + 1}. ${entry.name} - ${entry.score}`, 20, 80 + i * 20);
-        }
-      }
-
-      function checkHighScore() {
-        if (
-          topScores.length < 3 ||
-          score > topScores[topScores.length - 1].score
-        ) {
-          let name = prompt("Parabéns! Digite seu nome para registrar a fuga:");
-          if (name) {
-            topScores.push({ name, score });
-            topScores.sort((a, b) => b.score - a.score);
-            if (topScores.length > 3) topScores.pop();
+          
+          // Atualiza e desenha as escalas
+          for (let i = pipes.length - 1; i >= 0; i--) {
+            pipes[i].update();
+            pipes[i].show();
+            
+            // Verifica colisão
+            if (pipes[i].hits(bird)) {
+              gameOver = true;
+              showGameOver();
+            }
+            
+            // Pontua quando passa por um cano
+            if (!pipes[i].counted && bird.x > pipes[i].x + pipes[i].w) {
+              pipes[i].counted = true;
+              score++;
+            }
           }
+          
+          // Mostra a pontuação
+          drawCyberText("PONTOS: " + score, width / 2, 30, 32, color(0, 255, 255));
+          
+          // Mostra os melhores scores
+          drawTopScores();
         }
-      }
-
-      function keyPressed() {
-        if (key == ' ' || keyCode === UP_ARROW) bird.up();
-      }
-
-      function touchStarted() {
-        bird.up();
-        return false;
-      }
-
-      function mousePressed() {
-        bird.up();
-      }
-
-      function resetGame() {
-        score = 0;
-        bird = new Bird();
-        pipes = [];
-        pipes.push(new Pipe());
-      }
-
-      class Bird {
-        constructor() {
-          this.y = height / 2;
-          this.x = 64;
-          this.gravity = 0.6;
-          this.lift = -12;
-          this.velocity = 0;
-        }
-
-        show() {
-          fill(255, 204, 0);
-          ellipse(this.x, this.y, 32, 32);
+        
+        function drawCyberText(txt, x, y, size, col) {
+          push();
+          textFont('Orbitron');
+          textSize(size);
+          textAlign(CENTER);
+          
+          // Efeito de neon
+          drawingContext.shadowBlur = 15;
+          drawingContext.shadowColor = col;
+          
           fill(0);
-          textSize(16);
-          textAlign(CENTER, CENTER);
-          text("OP", this.x, this.y);
+          stroke(col);
+          strokeWeight(3);
+          text(txt, x, y);
+          
+          drawingContext.shadowBlur = 0;
+          pop();
         }
-
-        up() {
-          this.velocity += this.lift;
-        }
-
-        update() {
-          this.velocity += this.gravity;
-          this.velocity *= 0.9;
-          this.y += this.velocity;
-
-          if (this.y > height) {
-            this.y = height;
-            this.velocity = 0;
+        
+        function drawTopScores() {
+          if (topScores.length === 0) return;
+          
+          // Fundo do ranking
+          fill(0, 20, 40, 200);
+          stroke(0, 255, 255);
+          strokeWeight(2);
+          rect(20, 70, 240, 40 + topScores.length * 30, 5);
+          
+          // Título
+          drawCyberText("TOP FUJÕES", 140, 100, 20, color(255, 0, 255));
+          
+          // Itens do ranking
+          for (let i = 0; i < topScores.length; i++) {
+            let yPos = 130 + i * 30;
+            let neonColor = i === 0 ? color(255, 255, 0) : 
+                           i === 1 ? color(200, 200, 200) : 
+                           i === 2 ? color(205, 127, 50) : 
+                           color(0, 255, 255);
+            
+            drawCyberText(`${i + 1}. ${topScores[i].name}: ${topScores[i].score}`, 140, yPos, 16, neonColor);
           }
-
-          if (this.y < 0) {
-            this.y = 0;
-            this.velocity = 0;
+        }
+        
+        function startGame() {
+          playerName = nameInput.value().trim();
+          if (playerName === "") {
+            playerName = "Anônimo";
+          }
+          
+          startScreen.hide();
+          gameStarted = true;
+          gameOver = false;
+          select('canvas').show();
+          loop();
+        }
+        
+        function showGameOver() {
+          burnoutText.show();
+          gameOverScreen.style('display', 'flex');
+          noLoop();
+        }
+        
+        function endGame() {
+          // Adiciona ao ranking se for um dos melhores
+          checkHighScore();
+          
+          // Mostra tela inicial novamente
+          gameOverScreen.hide();
+          startScreen.show();
+          burnoutText.hide();
+          resetGame();
+          nameInput.value(''); // Limpa o nome para novo jogador
+          select('canvas').hide();
+        }
+        
+        function restartGame() {
+          gameOverScreen.hide();
+          burnoutText.hide();
+          resetGame();
+          loop();
+        }
+        
+        function checkHighScore() {
+          if (topScores.length < 5 || score > topScores[topScores.length - 1].score) {
+            topScores.push({ name: playerName, score: score });
+            topScores.sort((a, b) => b.score - a.score);
+            if (topScores.length > 5) topScores.pop();
+            
+            // Salva no localStorage
+            localStorage.setItem('topScores', JSON.stringify(topScores));
           }
         }
-      }
-
-      class Pipe {
-        constructor() {
-          this.top = random(100, 300);
-          this.gap = 150;
-          this.bottom = this.top + this.gap;
-          this.x = width;
-          this.w = 60;
-          this.speed = 2;
+        
+        function keyPressed() {
+          if ((key === ' ' || keyCode === UP_ARROW) && gameStarted && !gameOver) {
+            bird.up();
+          }
         }
-
-        hits(bird) {
-          return (
-            bird.y < this.top || bird.y > this.bottom
-          ) && bird.x > this.x && bird.x < this.x + this.w;
+        
+        function mousePressed() {
+          if (gameStarted && !gameOver) {
+            bird.up();
+          }
         }
-
-        show() {
-          fill(34, 139, 34);
-          rect(this.x, 0, this.w, this.top);
-          rect(this.x, this.bottom, this.w, height - this.bottom);
-
-          fill(255);
-          textSize(16);
-          textAlign(CENTER, CENTER);
-          text("Escala", this.x + this.w / 2, this.top / 2);
-          text("Escala", this.x + this.w / 2, this.bottom + (height - this.bottom) / 2);
+        
+        function windowResized() {
+          resizeCanvas(windowWidth, windowHeight);
         }
-
-        update() {
-          this.x -= this.speed;
+        
+        function resetGame() {
+          score = 0;
+          gameOver = false;
+          bird = new Bird();
+          pipes = [];
         }
-
-        offscreen() {
-          return this.x < -this.w;
+        
+        // Classe do Trabalhador
+        class Bird {
+          constructor() {
+            this.y = height / 2;
+            this.x = width / 4;
+            this.gravity = 0.6;
+            this.lift = -12;
+            this.velocity = 0;
+            this.size = birdSize;
+            this.neonColor = color(255, 0, 255);
+          }
+          
+          show() {
+            if (birdImg) {
+              // Efeito neon na imagem
+              drawingContext.shadowBlur = 15;
+              drawingContext.shadowColor = this.neonColor;
+              image(birdImg, this.x - this.size/2, this.y - this.size/2, this.size, this.size);
+              drawingContext.shadowBlur = 0;
+            } else {
+              // Desenho cyberpunk do trabalhador
+              drawingContext.shadowBlur = 20;
+              drawingContext.shadowColor = this.neonColor;
+              
+              fill(0);
+              stroke(this.neonColor);
+              strokeWeight(2);
+              ellipse(this.x, this.y, this.size, this.size);
+              
+              fill(this.neonColor);
+              noStroke();
+              textSize(16);
+              textAlign(CENTER, CENTER);
+              text("*-*", this.x, this.y);
+              
+              drawingContext.shadowBlur = 0;
+            }
+          }
+          
+          up() {
+            this.velocity += this.lift;
+            this.neonColor = color(random(200, 255), random(100), random(200, 255));
+          }
+          
+          update() {
+            this.velocity += this.gravity;
+            this.velocity *= 0.9;
+            this.y += this.velocity;
+            
+            // Limites da tela
+            if (this.y > height - this.size/2) {
+              this.y = height - this.size/2;
+              this.velocity = 0;
+            }
+            
+            if (this.y < this.size/2) {
+              this.y = this.size/2;
+              this.velocity = 0;
+            }
+          }
         }
-      }
-    </script>
+        
+        // Classe das Escalas (obstáculos)
+        class Pipe {
+          constructor() {
+            this.w = 80;
+            this.x = width;
+            this.speed = 3;
+            this.counted = false;
+            this.neonColor = color(0, 255, 255);
+            
+            // Define a abertura entre as escalas (3 a 5 vezes o tamanho do trabalhador)
+            this.gap = random(birdSize * 3, birdSize * 5);
+            
+            // Posição da escala de cima
+            this.top = random(height/6, height - this.gap - height/6);
+            this.bottom = this.top + this.gap;
+          }
+          
+          hits(bird) {
+            // Verifica se o trabalhador está dentro da área das escalas
+            if (bird.x + bird.size/2 > this.x && bird.x - bird.size/2 < this.x + this.w) {
+              // Verifica se está acima da escala de cima ou abaixo da de baixo
+              if (bird.y - bird.size/2 < this.top || bird.y + bird.size/2 > this.bottom) {
+                return true;
+              }
+            }
+            return false;
+          }
+          
+          show() {
+            drawingContext.shadowBlur = 10;
+            drawingContext.shadowColor = this.neonColor;
+            
+            if (pipeImg) {
+              // Escala de cima (invertido)
+              push();
+              translate(this.x, this.top);
+              scale(1, -1);
+              image(pipeImg, 0, 0, this.w, this.top);
+              pop();
+              
+              // Escala de baixo
+              image(pipeImg, this.x, this.bottom, this.w, height - this.bottom);
+            } else {
+              // Fallback cyberpunk
+              fill(0, 20, 40);
+              stroke(this.neonColor);
+              strokeWeight(2);
+              rect(this.x, 0, this.w, this.top);
+              rect(this.x, this.bottom, this.w, height - this.bottom);
+              
+              fill(this.neonColor);
+              noStroke();
+              textSize(16);
+              textAlign(CENTER, CENTER);
+              text("ESCALA", this.x + this.w/2, this.top/2);
+              text("ESCALA", this.x + this.w/2, this.bottom + (height - this.bottom)/2);
+            }
+            
+            drawingContext.shadowBlur = 0;
+          }
+          
+          update() {
+            this.x -= this.speed;
+          }
+          
+          offscreen() {
+            return this.x < -this.w;
+          }
+        }
+      </script>
+    </div>
   </body>
 </html>
