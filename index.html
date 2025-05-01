@@ -2,24 +2,17 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Fugitivo da Escala</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fuga de Escala</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
     <style>
       body {
         margin: 0;
         overflow: hidden;
-        background-color: #0a0a1a;
-        font-family: 'Orbitron', Arial, sans-serif;
-        touch-action: manipulation;
-        -webkit-tap-highlight-color: transparent;
+        font-family: Arial, sans-serif;
       }
       #game-container {
         position: relative;
-        width: 100%;
-        height: 100vh;
-        touch-action: none;
       }
       #start-screen, #game-over-screen {
         position: absolute;
@@ -31,164 +24,56 @@
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        background: linear-gradient(135deg, rgba(10,10,30,0.9) 0%, rgba(30,5,60,0.9) 100%);
-        color: #0ff;
+        background-color: rgba(0, 0, 0, 0.7);
+        color: white;
         z-index: 10;
-        text-align: center;
       }
       #game-over-screen {
         display: none;
       }
-      .cyber-box {
-        background: rgba(0, 20, 40, 0.8);
-        border: 2px solid #0ff;
-        box-shadow: 0 0 15px #0ff, inset 0 0 10px #0ff;
-        padding: 20px;
-        border-radius: 5px;
-        width: 85%;
-        max-width: 500px;
-        margin: 15px;
-      }
-      .title-box {
-        background: rgba(0, 10, 20, 0.7);
-        border: 1px solid #f0f;
-        box-shadow: 0 0 10px #f0f;
-        padding: 10px;
-        margin-bottom: 15px;
-      }
       button {
         margin: 10px;
-        padding: 12px 25px;
-        font-size: 16px;
+        padding: 10px 20px;
+        font-size: 18px;
         cursor: pointer;
-        background: linear-gradient(45deg, #ff00cc, #3333ff);
+        background-color: #4CAF50;
         color: white;
         border: none;
-        border-radius: 0;
-        transition: all 0.3s;
-        font-family: 'Orbitron', sans-serif;
-        min-width: 120px;
+        border-radius: 5px;
       }
       button:hover {
-        box-shadow: 0 0 15px #ff00cc, 0 0 25px #3333ff;
-        transform: translateY(-3px);
+        background-color: #45a049;
       }
       h1 {
-        font-size: 1.5rem;
-        margin: 0;
-        text-shadow: 0 0 10px #0ff;
-        color: #0ff;
+        font-size: 48px;
+        margin-bottom: 30px;
+        text-shadow: 2px 2px 4px #000000;
       }
       #burnout {
-        font-size: 2.5rem;
-        color: #f00;
+        font-size: 72px;
+        color: red;
         font-weight: bold;
-        text-shadow: 0 0 10px #f00;
+        text-shadow: 3px 3px 6px #000000;
         margin-bottom: 20px;
         display: none;
-      }
-      input {
-        background: rgba(0, 10, 20, 0.7);
-        border: 1px solid #0ff;
-        color: #0ff;
-        padding: 10px;
-        font-size: 16px;
-        margin: 10px 0;
-        width: 80%;
-        max-width: 300px;
-        text-align: center;
-        font-family: 'Orbitron', sans-serif;
-      }
-      .button-container {
-        display: flex;
-        justify-content: center;
-        flex-wrap: wrap;
-      }
-      .scanlines {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(
-          to bottom,
-          rgba(0, 255, 255, 0.05) 0%,
-          rgba(0, 255, 255, 0) 10%
-        );
-        background-size: 100% 4px;
-        pointer-events: none;
-        z-index: 5;
-      }
-      .noise {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABnSURBVGhD7cExAQAwDMCg+zfd2VAp5JVBXtnllV1e2eWVXV7Z5ZVdXtnllV1e2eWVXV7Z5ZVdXtnllV1e2eWVXV7Z5ZVdXtnllV1e2eWVXV7Z5ZVdXtnllV1e2eWVXV7Z5ZVdXtnllV1e2eWVXV7Z5Q1Q5AERp1j3JAAAAABJRU5ErkJggg==');
-        opacity: 0.03;
-        pointer-events: none;
-        z-index: 6;
-      }
-      canvas {
-        display: block;
-        position: absolute;
-        top: 0;
-        left: 0;
-        z-index: 1;
-        touch-action: none;
-      }
-      
-      @media (max-width: 768px) {
-        .cyber-box {
-          padding: 15px;
-          width: 90%;
-        }
-        h1 {
-          font-size: 1.3rem;
-        }
-        button {
-          padding: 12px 20px;
-          font-size: 14px;
-          min-width: 100px;
-        }
-        #burnout {
-          font-size: 2rem;
-        }
-        input {
-          font-size: 14px;
-          padding: 8px;
-        }
-        .title-box {
-          padding: 8px;
-        }
       }
     </style>
   </head>
   <body>
     <div id="game-container">
-      <div class="scanlines"></div>
-      <div class="noise"></div>
-      
       <div id="start-screen">
-        <div class="cyber-box">
-          <div class="title-box">
-            <h1>FUGITIVO DA ESCALA</h1>
-          </div>
-          <p>Digite seu nome para começar:</p>
-          <input type="text" id="player-name" placeholder="Seu nome">
-          <button id="start-button">Começar</button>
-        </div>
+        <h1>Fuga de Escala</h1>
+        <p>Digite seu nome para começar:</p>
+        <input type="text" id="player-name" placeholder="Seu nome">
+        <button id="start-button">Começar</button>
       </div>
       
       <div id="game-over-screen">
-        <div class="cyber-box">
-          <div id="burnout">BURNOUT</div>
-          <p>Pedir as contas?</p>
-          <div class="button-container">
-            <button id="yes-button">Sim</button>
-            <button id="no-button">Não</button>
-          </div>
+        <div id="burnout">BurnOut</div>
+        <p>Pedir as contas?</p>
+        <div>
+          <button id="yes-button">Sim</button>
+          <button id="no-button">Não</button>
         </div>
       </div>
       
@@ -202,37 +87,31 @@
         let playerName = "";
         let birdImg, bgImg, pipeImg;
         let birdSize = 40;
-        let isMobile = false;
-        let lastTapTime = 0;
-        let tapDelay = 300;
-        
-        // TOP SCORES - Agora usando localStorage
-        let topScores = JSON.parse(localStorage.getItem('fugitivoTopScores')) || [];
+        let topScores = JSON.parse(localStorage.getItem('topScores')) || [];
         
         // Elementos da interface
         let startScreen, gameOverScreen, nameInput, startButton, yesButton, noButton, burnoutText;
-        let canvas;
         
         function preload() {
-          bgImg = loadImage('fundo.jpeg', 
-            () => console.log('Fundo carregado'), 
-            () => bgImg = null
+          // Tenta carregar imagens locais, se não encontrar, usa fallbacks
+          bgImg = loadImage('fundo.jpg', 
+            () => console.log('Fundo local carregado'), 
+            () => bgImg = loadImage('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80')
           );
+          
           birdImg = loadImage('personagem.jpg', 
-            () => console.log('Personagem carregado'), 
+            () => console.log('Personagem local carregado'), 
             () => birdImg = null
           );
+          
           pipeImg = loadImage('cano.jpg', 
-            () => console.log('Cano carregado'), 
+            () => console.log('Cano local carregado'), 
             () => pipeImg = null
           );
         }
         
         function setup() {
-          isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-          
-          canvas = createCanvas(windowWidth, windowHeight);
-          canvas.parent('game-container');
+          createCanvas(windowWidth, windowHeight);
           
           // Configura elementos da interface
           startScreen = select('#start-screen');
@@ -245,137 +124,115 @@
           
           // Configura eventos
           startButton.mousePressed(startGame);
-          yesButton.mousePressed(() => location.reload());
+          yesButton.mousePressed(endGame);
           noButton.mousePressed(restartGame);
           
-          if (isMobile) {
-            canvas.elt.addEventListener('touchstart', handleTouchStart, { passive: false });
-            canvas.elt.addEventListener('touchend', handleTouchEnd, { passive: false });
-          }
-          
-          resetBird();
-          canvas.hide();
-          frameRate(30);
-        }
-        
-        function resetBird() {
+          // Inicializa o pássaro
           bird = new Bird();
-          if (isMobile) {
-            birdSize = 30;
-            bird.lift = -9;
-            bird.gravity = 0.5;
-          }
         }
         
         function draw() {
           if (!gameStarted) return;
           
-          clear();
-          
+          // Desenha o fundo
           if (bgImg) {
             image(bgImg, 0, 0, width, height);
           } else {
-            background(10, 5, 30);
-            stroke(0, 255, 255, 50);
-            noFill();
-            for (let i = 0; i < 5; i++) {
-              beginShape();
-              for (let x = 0; x < width; x += 20) {
-                let y = noise(x * 0.01, i * 100, frameCount * 0.01) * height;
-                vertex(x, y);
-              }
-              endShape();
-            }
+            background(135, 206, 235); // Azul céu como fallback
           }
           
           if (gameOver) return;
           
+          // Atualiza e desenha o pássaro
           bird.update();
           bird.show();
           
-          if (frameCount % 90 === 0 || (pipes.length > 0 && pipes[pipes.length-1].x < width - 300)) {
+          // Gera novos canos
+          if (frameCount % 90 === 0) {
             pipes.push(new Pipe());
           }
           
+          // Atualiza e desenha os canos
           for (let i = pipes.length - 1; i >= 0; i--) {
             pipes[i].update();
             pipes[i].show();
             
+            // Verifica colisão
             if (pipes[i].hits(bird)) {
               gameOver = true;
               showGameOver();
             }
             
-            if (!pipes[i].counted && bird.x > pipes[i].x + pipes[i].w) {
-              pipes[i].counted = true;
-              score++;
-            }
-            
+            // Remove canos que saíram da tela e incrementa pontuação
             if (pipes[i].offscreen()) {
               pipes.splice(i, 1);
+              score++;
             }
           }
           
-          drawCyberText("PONTOS: " + score, width / 2, 30, isMobile ? 24 : 32, color(0, 255, 255));
+          // Mostra a pontuação
+          fill(255);
+          stroke(0);
+          strokeWeight(2);
+          textSize(28);
+          textAlign(CENTER, TOP);
+          text("Pontuação: " + score, width / 2, 20);
+          
+          // Mostra os melhores scores
           drawTopScores();
-        }
-        
-        function drawCyberText(txt, x, y, size, col) {
-          push();
-          textFont('Orbitron');
-          textSize(size);
-          textAlign(CENTER);
-          drawingContext.shadowBlur = 15;
-          drawingContext.shadowColor = col;
-          fill(0);
-          stroke(col);
-          strokeWeight(3);
-          text(txt, x, y);
-          drawingContext.shadowBlur = 0;
-          pop();
         }
         
         function drawTopScores() {
           if (topScores.length === 0) return;
           
-          let rectWidth = isMobile ? 180 : 240;
-          let rectHeight = isMobile ? 30 + topScores.length * 25 : 40 + topScores.length * 30;
+          fill(0, 0, 0, 180);
+          noStroke();
+          rect(10, 60, 220, 30 + topScores.length * 25, 10);
           
-          fill(0, 20, 40, 200);
-          stroke(0, 255, 255);
-          strokeWeight(2);
-          rect(20, 70, rectWidth, rectHeight, 5);
+          fill(255);
+          textSize(18);
+          textAlign(LEFT, TOP);
+          text("Melhores Fugas:", 20, 70);
           
-          drawCyberText("TOP FUJÕES", 20 + rectWidth/2, isMobile ? 90 : 100, isMobile ? 16 : 20, color(255, 0, 255));
-          
-          for (let i = 0; i < Math.min(topScores.length, 5); i++) {
-            let yPos = isMobile ? 115 + i * 25 : 130 + i * 30;
-            let neonColor = i === 0 ? color(255, 255, 0) : 
-                           i === 1 ? color(200, 200, 200) : 
-                           i === 2 ? color(205, 127, 50) : 
-                           color(0, 255, 255);
-            
-            drawCyberText(`${i + 1}. ${topScores[i].name}: ${topScores[i].score}`, 
-                          20 + rectWidth/2, yPos, 
-                          isMobile ? 14 : 16, 
-                          neonColor);
+          for (let i = 0; i < topScores.length; i++) {
+            text(`${i + 1}. ${topScores[i].name}: ${topScores[i].score}`, 20, 100 + i * 25);
           }
         }
         
         function startGame() {
-          playerName = nameInput.value().trim() || "Anônimo";
+          playerName = nameInput.value().trim();
+          if (playerName === "") {
+            playerName = "Anônimo";
+          }
+          
           startScreen.hide();
           gameStarted = true;
           gameOver = false;
-          canvas.show();
-          loop();
+          loop(); // Garante que o draw() seja chamado
         }
         
         function showGameOver() {
           burnoutText.show();
           gameOverScreen.style('display', 'flex');
           noLoop();
-          checkHighScore();
+        }
+        
+        function endGame() {
+          // Adiciona ao ranking se for um dos melhores
+          if (topScores.length < 5 || score > topScores[topScores.length - 1].score) {
+            topScores.push({ name: playerName, score: score });
+            topScores.sort((a, b) => b.score - a.score);
+            if (topScores.length > 5) topScores.pop();
+            
+            // Salva no localStorage
+            localStorage.setItem('topScores', JSON.stringify(topScores));
+          }
+          
+          // Mostra tela inicial novamente
+          gameOverScreen.hide();
+          startScreen.show();
+          burnoutText.hide();
+          resetGame();
         }
         
         function restartGame() {
@@ -385,122 +242,68 @@
           loop();
         }
         
-        function checkHighScore() {
-          let newScore = { name: playerName, score: score };
-          let shouldAdd = false;
-          
-          if (topScores.length < 5) {
-            shouldAdd = true;
-          } else {
-            for (let i = 0; i < topScores.length; i++) {
-              if (score > topScores[i].score) {
-                shouldAdd = true;
-                break;
-              }
-            }
-          }
-          
-          if (shouldAdd) {
-            topScores.push(newScore);
-            topScores.sort((a, b) => b.score - a.score);
-            topScores = topScores.slice(0, 5); // Mantém apenas top 5
-            localStorage.setItem('fugitivoTopScores', JSON.stringify(topScores));
-          }
+        function resetGame() {
+          score = 0;
+          gameOver = false;
+          bird = new Bird();
+          pipes = [];
         }
         
         function keyPressed() {
           if ((key === ' ' || keyCode === UP_ARROW) && gameStarted && !gameOver) {
             bird.up();
-            return false;
           }
         }
         
         function mousePressed() {
           if (gameStarted && !gameOver) {
             bird.up();
-            return false;
-          }
-        }
-        
-        function handleTouchStart(e) {
-          if (gameStarted && !gameOver) {
-            e.preventDefault();
-          }
-        }
-        
-        function handleTouchEnd(e) {
-          if (gameStarted && !gameOver) {
-            e.preventDefault();
-            const currentTime = new Date().getTime();
-            if (currentTime - lastTapTime < tapDelay) return;
-            lastTapTime = currentTime;
-            bird.up();
           }
         }
         
         function windowResized() {
           resizeCanvas(windowWidth, windowHeight);
-          if (!gameStarted) redraw();
         }
         
-        function resetGame() {
-          score = 0;
-          gameOver = false;
-          resetBird();
-          pipes = [];
-        }
-        
+        // Classe do Pássaro
         class Bird {
           constructor() {
             this.y = height / 2;
             this.x = width / 4;
-            this.gravity = isMobile ? 0.5 : 0.6;
-            this.lift = isMobile ? -9 : -12;
+            this.gravity = 0.6;
+            this.lift = -12;
             this.velocity = 0;
-            this.size = isMobile ? 30 : 40;
-            this.neonColor = color(255, 0, 255);
-            this.maxVelocity = isMobile ? 10 : 12;
+            this.size = birdSize;
           }
           
           show() {
             if (birdImg) {
-              drawingContext.shadowBlur = 15;
-              drawingContext.shadowColor = this.neonColor;
               image(birdImg, this.x - this.size/2, this.y - this.size/2, this.size, this.size);
-              drawingContext.shadowBlur = 0;
             } else {
-              drawingContext.shadowBlur = 20;
-              drawingContext.shadowColor = this.neonColor;
-              fill(0);
-              stroke(this.neonColor);
-              strokeWeight(2);
+              fill(255, 204, 0);
               ellipse(this.x, this.y, this.size, this.size);
-              fill(this.neonColor);
-              noStroke();
+              fill(0);
               textSize(16);
               textAlign(CENTER, CENTER);
-              text("*-*", this.x, this.y);
-              drawingContext.shadowBlur = 0;
+              text("OP", this.x, this.y);
             }
           }
           
           up() {
             this.velocity += this.lift;
-            this.neonColor = color(random(200, 255), random(100), random(200, 255));
           }
           
           update() {
             this.velocity += this.gravity;
             this.velocity *= 0.9;
-            if (Math.abs(this.velocity) > this.maxVelocity) {
-              this.velocity = this.maxVelocity * Math.sign(this.velocity);
-            }
             this.y += this.velocity;
             
+            // Limites da tela
             if (this.y > height - this.size/2) {
               this.y = height - this.size/2;
               this.velocity = 0;
             }
+            
             if (this.y < this.size/2) {
               this.y = this.size/2;
               this.velocity = 0;
@@ -508,51 +311,65 @@
           }
         }
         
-class Pipe {
-  constructor() {
-    this.w = isMobile ? 60 : 80;
-    this.x = width;
-    this.speed = isMobile ? 2.5 : 3;
-    this.counted = false;
-    this.neonColor = color(0, 255, 255);
-    this.gap = random(birdSize * 3, birdSize * 5);
-    this.top = random(height / 6, height - this.gap - height / 6);
-    this.bottom = this.top + this.gap;
-  }
-
-  hits(bird) {
-    let hitX = bird.x + bird.size / 2 > this.x && bird.x - bird.size / 2 < this.x + this.w;
-    let hitY = bird.y - bird.size / 2 < this.top || bird.y + bird.size / 2 > this.bottom;
-    return hitX && hitY;
-  }
-
-  show() {
-    drawingContext.shadowBlur = 10;
-    drawingContext.shadowColor = this.neonColor;
-
-    if (pipeImg) {
-      image(pipeImg, this.x, 0, this.w, this.top);
-      image(pipeImg, this.x, this.bottom, this.w, height - this.bottom);
-    } else {
-      fill(0);
-      stroke(this.neonColor);
-      strokeWeight(2);
-      rect(this.x, 0, this.w, this.top);
-      rect(this.x, this.bottom, this.w, height - this.bottom);
-    }
-
-    drawingContext.shadowBlur = 0;
-  }
-
-  update() {
-    this.x -= this.speed;
-  }
-
-  offscreen() {
-    return this.x + this.w < 0;
-  }
-}
-
+        // Classe dos Canos
+        class Pipe {
+          constructor() {
+            this.w = 80;
+            this.x = width;
+            this.speed = 3;
+            
+            // Define a abertura entre os canos (3 a 5 vezes o tamanho do pássaro)
+            this.gap = random(birdSize * 3, birdSize * 5);
+            
+            // Posição do cano de cima (o de baixo será this.top + this.gap)
+            this.top = random(height/6, height - this.gap - height/6);
+            this.bottom = this.top + this.gap;
+          }
+          
+          hits(bird) {
+            // Verifica se o pássaro está dentro da área dos canos
+            if (bird.x + bird.size/2 > this.x && bird.x - bird.size/2 < this.x + this.w) {
+              // Verifica se está acima do cano de cima ou abaixo do cano de baixo
+              if (bird.y - bird.size/2 < this.top || bird.y + bird.size/2 > this.bottom) {
+                return true;
+              }
+            }
+            return false;
+          }
+          
+          show() {
+            if (pipeImg) {
+              // Cano de cima (invertido)
+              push();
+              translate(this.x, this.top);
+              scale(1, -1);
+              image(pipeImg, 0, 0, this.w, this.top);
+              pop();
+              
+              // Cano de baixo
+              image(pipeImg, this.x, this.bottom, this.w, height - this.bottom);
+            } else {
+              // Fallback gráfico
+              fill(34, 139, 34);
+              rect(this.x, 0, this.w, this.top);
+              rect(this.x, this.bottom, this.w, height - this.bottom);
+              
+              fill(255);
+              textSize(16);
+              textAlign(CENTER, CENTER);
+              text("Escala", this.x + this.w/2, this.top/2);
+              text("Escala", this.x + this.w/2, this.bottom + (height - this.bottom)/2);
+            }
+          }
+          
+          update() {
+            this.x -= this.speed;
+          }
+          
+          offscreen() {
+            return this.x < -this.w;
+          }
+        }
       </script>
     </div>
   </body>
