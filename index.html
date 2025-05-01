@@ -58,7 +58,7 @@
       }
       button {
         margin: 10px;
-        padding: 10px 25px;
+        padding: 12px 25px;
         font-size: 16px;
         cursor: pointer;
         background: linear-gradient(45deg, #ff00cc, #3333ff);
@@ -139,32 +139,26 @@
         touch-action: none;
       }
       
-      /* Estilos específicos para mobile */
       @media (max-width: 768px) {
         .cyber-box {
           padding: 15px;
           width: 90%;
         }
-        
         h1 {
           font-size: 1.3rem;
         }
-        
         button {
           padding: 12px 20px;
           font-size: 14px;
           min-width: 100px;
         }
-        
         #burnout {
           font-size: 2rem;
         }
-        
         input {
           font-size: 14px;
           padding: 8px;
         }
-        
         .title-box {
           padding: 8px;
         }
@@ -208,46 +202,36 @@
         let playerName = "";
         let birdImg, bgImg, pipeImg;
         let birdSize = 40;
-        let topScores = JSON.parse(localStorage.getItem('topScores')) || [];
-        let lastPipeX = 0;
         let isMobile = false;
-        let touchStartY = 0;
+        let lastTapTime = 0;
+        let tapDelay = 300;
+        
+        // TOP SCORES - Agora usando localStorage
+        let topScores = JSON.parse(localStorage.getItem('fugitivoTopScores')) || [];
         
         // Elementos da interface
         let startScreen, gameOverScreen, nameInput, startButton, yesButton, noButton, burnoutText;
+        let canvas;
         
         function preload() {
-          // Tenta carregar imagens locais, se não encontrar, usa fallbacks
           bgImg = loadImage('fundo.jpeg', 
-            () => console.log('Fundo local carregado'), 
-            () => {
-              console.log('Usando fallback para fundo');
-              bgImg = null;
-            }
+            () => console.log('Fundo carregado'), 
+            () => bgImg = null
           );
-          
           birdImg = loadImage('personagem.jpg', 
-            () => console.log('Personagem local carregado'), 
-            () => {
-              console.log('Usando fallback para personagem');
-              birdImg = null;
-            }
+            () => console.log('Personagem carregado'), 
+            () => birdImg = null
           );
-          
           pipeImg = loadImage('cano.jpg', 
-            () => console.log('Cano local carregado'), 
-            () => {
-              console.log('Usando fallback para cano');
-              pipeImg = null;
-            }
+            () => console.log('Cano carregado'), 
+            () => pipeImg = null
           );
         }
         
         function setup() {
-          // Verifica se é um dispositivo móvel
           isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
           
-          let canvas = createCanvas(windowWidth, windowHeight);
+          canvas = createCanvas(windowWidth, windowHeight);
           canvas.parent('game-container');
           
           // Configura elementos da interface
@@ -261,52 +245,37 @@
           
           // Configura eventos
           startButton.mousePressed(startGame);
-          yesButton.mousePressed(endGame);
+          yesButton.mousePressed(() => location.reload());
           noButton.mousePressed(restartGame);
           
-          // Configura eventos de toque para mobile
           if (isMobile) {
             canvas.elt.addEventListener('touchstart', handleTouchStart, { passive: false });
-            canvas.elt.addEventListener('touchmove', handleTouchMove, { passive: false });
+            canvas.elt.addEventListener('touchend', handleTouchEnd, { passive: false });
           }
           
-          // Inicializa o trabalhador
+          resetBird();
+          canvas.hide();
+          frameRate(30);
+        }
+        
+        function resetBird() {
           bird = new Bird();
-          
-          // Ajusta parâmetros para mobile
           if (isMobile) {
             birdSize = 30;
-            bird.lift = -10; // Reduz a força do pulo para mobile
+            bird.lift = -9;
+            bird.gravity = 0.5;
           }
-          
-          // Esconde o canvas inicialmente
-          canvas.hide();
-          
-          // Otimização: Reduz a taxa de quadros para 30 FPS
-          frameRate(30);
         }
         
         function draw() {
           if (!gameStarted) return;
           
-          // Limpa o canvas de forma otimizada
           clear();
           
-          // Desenha o fundo
           if (bgImg) {
             image(bgImg, 0, 0, width, height);
           } else {
             background(10, 5, 30);
-          }
-          
-          if (gameOver) return;
-          
-          // Desenha o fundo
-          if (bgImg) {
-            image(bgImg, 0, 0, width, height);
-          } else {
-            background(10, 5, 30);
-            // Efeitos de neon para o fundo
             stroke(0, 255, 255, 50);
             noFill();
             for (let i = 0; i < 5; i++) {
@@ -321,37 +290,33 @@
           
           if (gameOver) return;
           
-          // Atualiza e desenha o trabalhador
           bird.update();
           bird.show();
           
-          // Gera novos obstáculos (escalas)
           if (frameCount % 90 === 0 || (pipes.length > 0 && pipes[pipes.length-1].x < width - 300)) {
             pipes.push(new Pipe());
           }
           
-          // Atualiza e desenha as escalas
           for (let i = pipes.length - 1; i >= 0; i--) {
             pipes[i].update();
             pipes[i].show();
             
-            // Verifica colisão
             if (pipes[i].hits(bird)) {
               gameOver = true;
               showGameOver();
             }
             
-            // Pontua quando passa por um cano
             if (!pipes[i].counted && bird.x > pipes[i].x + pipes[i].w) {
               pipes[i].counted = true;
               score++;
             }
+            
+            if (pipes[i].offscreen()) {
+              pipes.splice(i, 1);
+            }
           }
           
-          // Mostra a pontuação
           drawCyberText("PONTOS: " + score, width / 2, 30, isMobile ? 24 : 32, color(0, 255, 255));
-          
-          // Mostra os melhores scores
           drawTopScores();
         }
         
@@ -360,16 +325,12 @@
           textFont('Orbitron');
           textSize(size);
           textAlign(CENTER);
-          
-          // Efeito de neon
           drawingContext.shadowBlur = 15;
           drawingContext.shadowColor = col;
-          
           fill(0);
           stroke(col);
           strokeWeight(3);
           text(txt, x, y);
-          
           drawingContext.shadowBlur = 0;
           pop();
         }
@@ -377,21 +338,17 @@
         function drawTopScores() {
           if (topScores.length === 0) return;
           
-          // Tamanho do retângulo do ranking ajustado para mobile
           let rectWidth = isMobile ? 180 : 240;
           let rectHeight = isMobile ? 30 + topScores.length * 25 : 40 + topScores.length * 30;
           
-          // Fundo do ranking
           fill(0, 20, 40, 200);
           stroke(0, 255, 255);
           strokeWeight(2);
           rect(20, 70, rectWidth, rectHeight, 5);
           
-          // Título
           drawCyberText("TOP FUJÕES", 20 + rectWidth/2, isMobile ? 90 : 100, isMobile ? 16 : 20, color(255, 0, 255));
           
-          // Itens do ranking
-          for (let i = 0; i < topScores.length; i++) {
+          for (let i = 0; i < Math.min(topScores.length, 5); i++) {
             let yPos = isMobile ? 115 + i * 25 : 130 + i * 30;
             let neonColor = i === 0 ? color(255, 255, 0) : 
                            i === 1 ? color(200, 200, 200) : 
@@ -406,15 +363,11 @@
         }
         
         function startGame() {
-          playerName = nameInput.value().trim();
-          if (playerName === "") {
-            playerName = "Anônimo";
-          }
-          
+          playerName = nameInput.value().trim() || "Anônimo";
           startScreen.hide();
           gameStarted = true;
           gameOver = false;
-          select('canvas').show();
+          canvas.show();
           loop();
         }
         
@@ -422,19 +375,7 @@
           burnoutText.show();
           gameOverScreen.style('display', 'flex');
           noLoop();
-        }
-        
-        function endGame() {
-          // Adiciona ao ranking se for um dos melhores
           checkHighScore();
-          
-          // Mostra tela inicial novamente
-          gameOverScreen.hide();
-          startScreen.show();
-          burnoutText.hide();
-          resetGame();
-          nameInput.value(''); // Limpa o nome para novo jogador
-          select('canvas').hide();
         }
         
         function restartGame() {
@@ -445,92 +386,100 @@
         }
         
         function checkHighScore() {
-          if (topScores.length < 5 || score > topScores[topScores.length - 1].score) {
-            topScores.push({ name: playerName, score: score });
+          let newScore = { name: playerName, score: score };
+          let shouldAdd = false;
+          
+          if (topScores.length < 5) {
+            shouldAdd = true;
+          } else {
+            for (let i = 0; i < topScores.length; i++) {
+              if (score > topScores[i].score) {
+                shouldAdd = true;
+                break;
+              }
+            }
+          }
+          
+          if (shouldAdd) {
+            topScores.push(newScore);
             topScores.sort((a, b) => b.score - a.score);
-            if (topScores.length > 5) topScores.pop();
-            
-            // Salva no localStorage
-            localStorage.setItem('topScores', JSON.stringify(topScores));
+            topScores = topScores.slice(0, 5); // Mantém apenas top 5
+            localStorage.setItem('fugitivoTopScores', JSON.stringify(topScores));
           }
         }
         
         function keyPressed() {
           if ((key === ' ' || keyCode === UP_ARROW) && gameStarted && !gameOver) {
             bird.up();
-            return false; // Previne comportamento padrão
+            return false;
           }
         }
         
         function mousePressed() {
           if (gameStarted && !gameOver) {
             bird.up();
-            return false; // Previne comportamento padrão
+            return false;
           }
         }
         
-        // Funções para lidar com toque em dispositivos móveis
         function handleTouchStart(e) {
           if (gameStarted && !gameOver) {
             e.preventDefault();
-            touchStartY = e.touches[0].clientY;
-            bird.up();
           }
         }
         
-        function handleTouchMove(e) {
+        function handleTouchEnd(e) {
           if (gameStarted && !gameOver) {
             e.preventDefault();
-            // Pode adicionar lógica adicional para movimentos se necessário
+            const currentTime = new Date().getTime();
+            if (currentTime - lastTapTime < tapDelay) return;
+            lastTapTime = currentTime;
+            bird.up();
           }
         }
         
         function windowResized() {
           resizeCanvas(windowWidth, windowHeight);
+          if (!gameStarted) redraw();
         }
         
         function resetGame() {
           score = 0;
           gameOver = false;
-          bird = new Bird();
+          resetBird();
           pipes = [];
         }
         
-        // Classe do Trabalhador
         class Bird {
           constructor() {
             this.y = height / 2;
             this.x = width / 4;
-            this.gravity = 0.6;
-            this.lift = isMobile ? -10 : -12; // Ajuste para mobile
+            this.gravity = isMobile ? 0.5 : 0.6;
+            this.lift = isMobile ? -9 : -12;
             this.velocity = 0;
-            this.size = isMobile ? 30 : 40; // Tamanho ajustado para mobile
+            this.size = isMobile ? 30 : 40;
             this.neonColor = color(255, 0, 255);
+            this.maxVelocity = isMobile ? 10 : 12;
           }
           
           show() {
             if (birdImg) {
-              // Efeito neon na imagem
               drawingContext.shadowBlur = 15;
               drawingContext.shadowColor = this.neonColor;
               image(birdImg, this.x - this.size/2, this.y - this.size/2, this.size, this.size);
               drawingContext.shadowBlur = 0;
             } else {
-              // Desenho cyberpunk do trabalhador
               drawingContext.shadowBlur = 20;
               drawingContext.shadowColor = this.neonColor;
-              
               fill(0);
               stroke(this.neonColor);
               strokeWeight(2);
               ellipse(this.x, this.y, this.size, this.size);
-              
               fill(this.neonColor);
               noStroke();
               textSize(16);
               textAlign(CENTER, CENTER);
               text("*-*", this.x, this.y);
-              
               drawingContext.shadowBlur = 0;
             }
           }
@@ -543,14 +492,15 @@
           update() {
             this.velocity += this.gravity;
             this.velocity *= 0.9;
+            if (Math.abs(this.velocity) > this.maxVelocity) {
+              this.velocity = this.maxVelocity * Math.sign(this.velocity);
+            }
             this.y += this.velocity;
             
-            // Limites da tela
             if (this.y > height - this.size/2) {
               this.y = height - this.size/2;
               this.velocity = 0;
             }
-            
             if (this.y < this.size/2) {
               this.y = this.size/2;
               this.velocity = 0;
@@ -558,27 +508,20 @@
           }
         }
         
-        // Classe das Escalas (obstáculos)
         class Pipe {
           constructor() {
-            this.w = isMobile ? 60 : 80; // Largura ajustada para mobile
+            this.w = isMobile ? 60 : 80;
             this.x = width;
-            this.speed = isMobile ? 2.5 : 3; // Velocidade ajustada para mobile
+            this.speed = isMobile ? 2.5 : 3;
             this.counted = false;
             this.neonColor = color(0, 255, 255);
-            
-            // Define a abertura entre as escalas (3 a 5 vezes o tamanho do trabalhador)
             this.gap = random(birdSize * 3, birdSize * 5);
-            
-            // Posição da escala de cima
             this.top = random(height/6, height - this.gap - height/6);
             this.bottom = this.top + this.gap;
           }
           
           hits(bird) {
-            // Verifica se o trabalhador está dentro da área das escalas
             if (bird.x + bird.size/2 > this.x && bird.x - bird.size/2 < this.x + this.w) {
-              // Verifica se está acima da escala de cima ou abaixo da de baixo
               if (bird.y - bird.size/2 < this.top || bird.y + bird.size/2 > this.bottom) {
                 return true;
               }
@@ -591,23 +534,18 @@
             drawingContext.shadowColor = this.neonColor;
             
             if (pipeImg) {
-              // Escala de cima (invertido)
               push();
               translate(this.x, this.top);
               scale(1, -1);
               image(pipeImg, 0, 0, this.w, this.top);
               pop();
-              
-              // Escala de baixo
               image(pipeImg, this.x, this.bottom, this.w, height - this.bottom);
             } else {
-              // Fallback cyberpunk
               fill(0, 20, 40);
               stroke(this.neonColor);
               strokeWeight(2);
               rect(this.x, 0, this.w, this.top);
               rect(this.x, this.bottom, this.w, height - this.bottom);
-              
               fill(this.neonColor);
               noStroke();
               textSize(16);
@@ -615,7 +553,6 @@
               text("ESCALA", this.x + this.w/2, this.top/2);
               text("ESCALA", this.x + this.w/2, this.bottom + (height - this.bottom)/2);
             }
-            
             drawingContext.shadowBlur = 0;
           }
           
