@@ -218,7 +218,7 @@
           noButton = select('#no-button');
           burnoutText = select('#burnout');
           
-          // Configura eventos
+         // Configura eventos
           startButton.mousePressed(startGame);
           yesButton.mousePressed(endGame);
           noButton.mousePressed(restartGame);
@@ -228,10 +228,25 @@
           
           // Esconde o canvas inicialmente
           canvas.hide();
+          
+          // Otimização: Reduz a taxa de quadros para 30 FPS
+          frameRate(30);
         }
         
         function draw() {
           if (!gameStarted) return;
+          
+          // Limpa o canvas de forma otimizada
+          clear();
+          
+          // Desenha o fundo
+          if (bgImg) {
+            image(bgImg, 0, 0, width, height);
+          } else {
+            background(10, 5, 30);
+          }
+          
+          if (gameOver) return;
           
           // Desenha o fundo
           if (bgImg) {
