@@ -17,29 +17,25 @@
       let bird;
       let pipes = [];
       let score = 0;
-      let bg, fallbackBg, bgResized;
-      let bgLoaded = false;
-      let personagemImg;
-      let personagemCarregado = false;
+      let bg;
+      let fallbackBg;
       let topScores = [];
+      let bgLoaded = false;
 
       function preload() {
-        fallbackBg = loadImage("https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1920&q=80");
+        fallbackBg = loadImage("https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80");
 
-        bg = loadImage("fundo.png",
+        // Tenta carregar fundo.png localmente, se falhar, usa URL
+        bg = loadImage(
+          "fundo.png",
+          () => bgLoaded = true,
           () => {
-            bgLoaded = true;
-          },
-          () => {
-            console.warn("fundo.png não encontrado. Usando imagem alternativa.");
-            bg = fallbackBg;
-            bgLoaded = true;
+            bg = loadImage(
+              "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/C%26M_Software_Logo.png/600px-C%26M_Software_Logo.png",
+              () => bgLoaded = true,
+              () => bg = fallbackBg
+            );
           }
-        );
-
-        personagemImg = loadImage("personagem.png",
-          () => personagemCarregado = true,
-          () => personagemCarregado = false
         );
       }
 
@@ -49,18 +45,11 @@
         pipes.push(new Pipe());
         textSize(20);
         textAlign(CENTER, TOP);
-
-        if (bg) {
-          bgResized = bg.get();
-          bgResized.resize(width, height);
-        }
       }
 
       function draw() {
         background(255);
-        if (bgResized) {
-          image(bgResized, 0, 0, width, height);
-        }
+        image(bg, 0, 0, width, height);
 
         bird.update();
         bird.show();
@@ -93,14 +82,6 @@
         drawTopScores();
       }
 
-      function windowResized() {
-        resizeCanvas(windowWidth, windowHeight);
-        if (bg) {
-          bgResized = bg.get();
-          bgResized.resize(windowWidth, windowHeight);
-        }
-      }
-
       function drawTopScores() {
         fill(0, 0, 0, 180);
         rect(10, 50, 200, 100, 10);
@@ -116,7 +97,10 @@
       }
 
       function checkHighScore() {
-        if (topScores.length < 3 || score > topScores[topScores.length - 1].score) {
+        if (
+          topScores.length < 3 ||
+          score > topScores[topScores.length - 1].score
+        ) {
           let name = prompt("Parabéns! Digite seu nome para registrar a fuga:");
           if (name) {
             topScores.push({ name, score });
@@ -156,17 +140,12 @@
         }
 
         show() {
-          if (personagemCarregado) {
-            imageMode(CENTER);
-            image(personagemImg, this.x, this.y, 32, 32);
-          } else {
-            fill(255, 204, 0);
-            ellipse(this.x, this.y, 32, 32);
-            fill(0);
-            textSize(16);
-            textAlign(CENTER, CENTER);
-            text("OP", this.x, this.y);
-          }
+          fill(255, 204, 0);
+          ellipse(this.x, this.y, 32, 32);
+          fill(0);
+          textSize(16);
+          textAlign(CENTER, CENTER);
+          text("OP", this.x, this.y);
         }
 
         up() {
