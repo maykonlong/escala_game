@@ -17,24 +17,23 @@
       let bird;
       let pipes = [];
       let score = 0;
-      let bg;
-      let fallbackBg;
-      let topScores = [];
+      let bg, fallbackBg, bgResized;
       let bgLoaded = false;
       let personagemImg;
       let personagemCarregado = false;
-      let bgResized;
+      let topScores = [];
 
       function preload() {
-        fallbackBg = loadImage("https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80");
+        fallbackBg = loadImage("https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1920&q=80");
+
         bg = loadImage("fundo.png",
           () => {
             bgLoaded = true;
-            bgResized = bg;
           },
           () => {
+            console.warn("fundo.png não encontrado. Usando imagem alternativa.");
             bg = fallbackBg;
-            bgResized = bg;
+            bgLoaded = true;
           }
         );
 
@@ -50,8 +49,9 @@
         pipes.push(new Pipe());
         textSize(20);
         textAlign(CENTER, TOP);
+
         if (bg) {
-          bgResized = bg.get(); // clona a imagem para redimensionamento
+          bgResized = bg.get();
           bgResized.resize(width, height);
         }
       }
@@ -96,7 +96,7 @@
       function windowResized() {
         resizeCanvas(windowWidth, windowHeight);
         if (bg) {
-          bgResized = bg.get(); // nova cópia redimensionada
+          bgResized = bg.get();
           bgResized.resize(windowWidth, windowHeight);
         }
       }
