@@ -23,17 +23,21 @@
       let bgLoaded = false;
       let personagemImg;
       let personagemCarregado = false;
+      let bgResized;
 
       function preload() {
-        // Fundo
         fallbackBg = loadImage("https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80");
-        bg = loadImage(
-          "fundo.png",
-          () => bgLoaded = true,
-          () => bg = fallbackBg
+        bg = loadImage("fundo.png",
+          () => {
+            bgLoaded = true;
+            bgResized = bg;
+          },
+          () => {
+            bg = fallbackBg;
+            bgResized = bg;
+          }
         );
 
-        // Personagem
         personagemImg = loadImage("personagem.png",
           () => personagemCarregado = true,
           () => personagemCarregado = false
@@ -46,11 +50,17 @@
         pipes.push(new Pipe());
         textSize(20);
         textAlign(CENTER, TOP);
+        if (bg) {
+          bgResized = bg.get(); // clona a imagem para redimensionamento
+          bgResized.resize(width, height);
+        }
       }
 
       function draw() {
         background(255);
-        image(bg, 0, 0, width, height);
+        if (bgResized) {
+          image(bgResized, 0, 0, width, height);
+        }
 
         bird.update();
         bird.show();
@@ -81,6 +91,14 @@
         text("Fuga de escala: " + score, width / 2, 10);
 
         drawTopScores();
+      }
+
+      function windowResized() {
+        resizeCanvas(windowWidth, windowHeight);
+        if (bg) {
+          bgResized = bg.get(); // nova cópia redimensionada
+          bgResized.resize(windowWidth, windowHeight);
+        }
       }
 
       function drawTopScores() {
