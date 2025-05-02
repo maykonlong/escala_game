@@ -21,18 +21,26 @@
       let fallbackBg;
       let topScores = [];
       let bgLoaded = false;
+      let personagemImg;
+      let personagemCarregado = false;
 
       function preload() {
+        // Fundo
         fallbackBg = loadImage("https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80");
         bg = loadImage(
           "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/C%26M_Software_Logo.png/600px-C%26M_Software_Logo.png",
           () => bgLoaded = true,
           () => bg = fallbackBg
         );
+
+        // Personagem
+        personagemImg = loadImage("personagem.jpg",
+          () => personagemCarregado = true,
+          () => personagemCarregado = false
+        );
       }
 
       function setup() {
-        // Definindo o tamanho da tela como 100% da largura e altura da janela
         createCanvas(windowWidth, windowHeight);
         bird = new Bird();
         pipes.push(new Pipe());
@@ -90,10 +98,7 @@
       }
 
       function checkHighScore() {
-        if (
-          topScores.length < 3 ||
-          score > topScores[topScores.length - 1].score
-        ) {
+        if (topScores.length < 3 || score > topScores[topScores.length - 1].score) {
           let name = prompt("Parabéns! Digite seu nome para registrar a fuga:");
           if (name) {
             topScores.push({ name, score });
@@ -133,12 +138,17 @@
         }
 
         show() {
-          fill(255, 204, 0);
-          ellipse(this.x, this.y, 32, 32);
-          fill(0);
-          textSize(16);
-          textAlign(CENTER, CENTER);
-          text("OP", this.x, this.y);
+          if (personagemCarregado) {
+            imageMode(CENTER);
+            image(personagemImg, this.x, this.y, 32, 32);
+          } else {
+            fill(255, 204, 0);
+            ellipse(this.x, this.y, 32, 32);
+            fill(0);
+            textSize(16);
+            textAlign(CENTER, CENTER);
+            text("OP", this.x, this.y);
+          }
         }
 
         up() {
